@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Why Glean for KBS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --bg-elevated: #ffffff;
+      --text-main: #111827;
+      --text-muted: #4b5563;
+      --text-soft: #6b7280;
+      --border-subtle: rgba(15, 23, 42, 0.08);
+      --accent: #003f7f;           /* KBS-style deep blue */
+      --accent-soft: rgba(0, 63, 127, 0.12);
+      --accent-alt: #f97316;       /* warm accent for small highlights */
+      --radius-card: 16px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 1px 3px rgba(15, 23, 42, 0.08), 0 8px 24px rgba(15, 23, 42, 0.06);
+      --space-xs: 8px;
+      --space-sm: 12px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --space-xl: 32px;
+      --space-2xl: 48px;
+      --space-3xl: 64px;
+      --transition-fast: 0.18s ease;
+      --transition-med: 0.25s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui,
+        sans-serif;
+      background:
+        radial-gradient(circle at top left, #ffffff 0, var(--bg) 40%, #e5e7eb 100%);
+      color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .page { min-height: 100vh; display: flex; flex-direction: column; }
+
+    .shell {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: var(--space-lg) var(--space-md);
+    }
+
+    /* Header / Nav */
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(18px);
+      background: rgba(244, 245, 247, 0.96);
+      border-bottom: 1px solid rgba(15, 23, 42, 0.04);
+    }
+
+    .header-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: var(--space-sm) var(--space-md);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-md);
+    }
+
+    .brand-link {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: radial-gradient(circle at 20% 20%, #ffffff, #dbeafe);
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12), 0 8px 20px rgba(15, 23, 42, 0.16);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .brand-text { display: flex; flex-direction: column; }
+
+    .brand-line1 {
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .brand-line2 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      font-size: 13px;
+      color: var(--text-soft);
+    }
+
+    .nav a {
+      padding: 6px 10px;
+      border-radius: 999px;
+      transition: background-color var(--transition-fast), color var(--transition-fast),
+        transform 0.12s ease;
+    }
+
+    .nav a:hover {
+      background: rgba(15, 23, 42, 0.06);
+      color: var(--text-main);
+      transform: translateY(-1px);
+    }
+
+    .nav-cta {
+      padding: 7px 14px;
+      border-radius: var(--radius-pill);
+      background: var(--accent);
+      color: white;
+      font-weight: 500;
+      box-shadow: 0 8px 20px rgba(0, 63, 127, 0.26);
+    }
+
+    .nav-cta:hover {
+      background: #003767;
+      transform: translateY(-1px);
+    }
+
+    .nav-toggle { display: none; }
+
+    /* Hero */
+
+    .hero {
+      padding-top: var(--space-2xl);
+      padding-bottom: var(--space-2xl);
+      animation: fadeUp 0.45s ease-out both;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(0, 1.2fr);
+      gap: var(--space-2xl);
+      align-items: center;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: var(--space-xs);
+      font-weight: 600;
+    }
+
+    .hero-title {
+      font-size: 32px;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      font-weight: 600;
+      margin-bottom: var(--space-md);
+    }
+
+    .hero-highlight {
+      background: linear-gradient(120deg, var(--accent), var(--accent-alt));
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      max-width: 540px;
+      margin-bottom: var(--space-lg);
+    }
+
+    .hero-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-xl);
+    }
+
+    .pill {
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--text-soft);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent-alt);
+    }
+
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-sm);
+      max-width: 520px;
+    }
+
+    .metric-card {
+      background: rgba(255, 255, 255, 0.96);
+      border-radius: 14px;
+      padding: var(--space-md);
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast),
+        background-color var(--transition-fast);
+    }
+
+    .metric-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+      background: #ffffff;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+    }
+
+    .metric-value {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .metric-footnote {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .pilot-box {
+      margin-top: var(--space-sm);
+      max-width: 260px;
+      background: rgba(255, 255, 255, 0.94);
+      border-radius: 12px;
+      padding: var(--space-sm) var(--space-md);
+      border: 1px dashed rgba(0, 63, 127, 0.25);
+    }
+
+    .pilot-title {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 2px;
+      font-weight: 600;
+    }
+
+    .pilot-body {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .hero-panel {
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 22px;
+      padding: var(--space-xl);
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-panel::before {
+      content: "";
+      position: absolute;
+      inset: -60%;
+      background:
+        radial-gradient(circle at 0 0, rgba(0, 63, 127, 0.06), transparent 60%),
+        radial-gradient(circle at 100% 100%, rgba(249, 115, 22, 0.07), transparent 55%);
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .hero-panel-inner {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+
+    .hero-panel-title {
+      font-size: 14px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+    }
+
+    .hero-panel-main {
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .hero-panel-main span { color: var(--accent); }
+
+    .hero-panel-body {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .hero-panel-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr);
+      gap: var(--space-md);
+      margin-top: var(--space-md);
+    }
+
+    .hero-panel-stat {
+      padding: var(--space-sm) var(--space-md);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid rgba(15, 23, 42, 0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .hero-panel-stat-label {
+      font-size: 11px;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .hero-panel-stat-value {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .hero-panel-stat-footnote {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .hero-panel-tagline {
+      margin-top: var(--space-sm);
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    section {
+      padding-top: var(--space-2xl);
+      padding-bottom: var(--space-2xl);
+    }
+
+    .section-header {
+      margin-bottom: var(--space-xl);
+      max-width: 720px;
+    }
+
+    .section-kicker {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+      margin-bottom: var(--space-xs);
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin-bottom: var(--space-sm);
+    }
+
+    .section-body {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-lg);
+    }
+
+    .card {
+      background: var(--bg-elevated);
+      border-radius: var(--radius-card);
+      padding: var(--space-lg);
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast),
+        border-color var(--transition-fast), background-color var(--transition-fast);
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+      border-color: rgba(0, 63, 127, 0.18);
+      background: #ffffff;
+    }
+
+    .card-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-soft);
+      margin-bottom: var(--space-xs);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: var(--space-xs);
+    }
+
+    .card-body {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .dot-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: var(--space-sm);
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .dot-row span::before { content: "• "; color: var(--text-soft); }
+
+    .economics-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.1fr);
+      gap: var(--space-xl);
+      align-items: flex-start;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-md);
+      margin-top: var(--space-md);
+    }
+
+    .stat-chip {
+      border-radius: 14px;
+      padding: var(--space-md);
+      background: #ffffff;
+      border: 1px solid rgba(15, 23, 42, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .stat-chip-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-soft);
+    }
+
+    .stat-chip-value {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .stat-chip-footnote {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .bar-card {
+      padding: var(--space-lg);
+      border-radius: 18px;
+      background: linear-gradient(145deg, #ffffff, #f4f5f7);
+      border: 1px solid rgba(15, 23, 42, 0.05);
+      box-shadow: var(--shadow-soft);
+    }
+
+    .bar-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-xs);
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .bar {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: #e5e7eb;
+      overflow: hidden;
+      margin-bottom: var(--space-sm);
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent-alt));
+      animation: barGrow 0.9s ease-out forwards;
+    }
+
+    .bar-fill--conservative { width: 65%; }
+    .bar-fill--full { width: 100%; }
+
+    .badge-soft {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .pilot-option-card {
+      margin-top: var(--space-md);
+      padding: var(--space-md);
+      border-radius: 14px;
+      border: 1px dashed rgba(0, 63, 127, 0.3);
+      background: rgba(255, 255, 255, 0.96);
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .pilot-option-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .usecase-columns {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.2fr);
+      gap: var(--space-xl);
+    }
+
+    .list-heading {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: var(--space-xs);
+    }
+
+    .usecase-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .usecase-list li {
+      position: relative;
+      padding-left: 18px;
+    }
+
+    .usecase-list li::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 8px;
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+    }
+
+    .usecase-label {
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-lg);
+      margin-top: var(--space-md);
+    }
+
+    .timeline-step {
+      position: relative;
+      padding-top: var(--space-md);
+    }
+
+    .timeline-step::before {
+      content: attr(data-step);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+    }
+
+    .timeline-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: var(--space-xs);
+      padding-left: 34px;
+    }
+
+    .timeline-body {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      padding-left: 34px;
+    }
+
+    .timeline-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.04);
+      font-size: 11px;
+      color: var(--text-soft);
+      margin-left: 6px;
+    }
+
+    .closing {
+      text-align: center;
+      padding-bottom: var(--space-3xl);
+    }
+
+    .closing .section-header {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .cta-buttons {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 18px;
+      border-radius: var(--radius-pill);
+      border: 1px solid transparent;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      background: none;
+      color: var(--text-main);
+      transition: background-color var(--transition-med), color var(--transition-med),
+        box-shadow var(--transition-med), transform 0.12s ease, border-color var(--transition-med);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 10px 26px rgba(0, 63, 127, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: #003767;
+      transform: translateY(-1px);
+      box-shadow: 0 14px 34px rgba(0, 63, 127, 0.38);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.94);
+      border-color: rgba(15, 23, 42, 0.08);
+    }
+
+    .btn-secondary:hover {
+      background: #ffffff;
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-soft);
+      border-color: rgba(15, 23, 42, 0.12);
+    }
+
+    .btn span.icon {
+      display: inline-block;
+      transform: translateX(0);
+      transition: transform var(--transition-fast);
+    }
+
+    .btn:hover span.icon { transform: translateX(2px); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes barGrow { from { width: 0; } }
+
+    @media (max-width: 900px) {
+      .hero-grid { grid-template-columns: minmax(0, 1fr); }
+      .hero-panel { order: -1; }
+      .hero-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .economics-layout,
+      .usecase-columns { grid-template-columns: minmax(0, 1fr); }
+      .timeline { grid-template-columns: minmax(0, 1fr); }
+      .nav { display: none; }
+      .nav-toggle {
+        display: inline-flex;
+        width: 30px;
+        height: 30px;
+        border-radius: 999px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(15, 23, 42, 0.12);
+        background: rgba(255, 255, 255, 0.96);
+        cursor: default;
+        font-size: 16px;
+        color: var(--text-soft);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .shell { padding-inline: var(--space-sm); }
+      .hero { padding-top: var(--space-xl); }
+      .hero-metrics { grid-template-columns: minmax(0, 1fr); }
+      section {
+        padding-top: var(--space-xl);
+        padding-bottom: var(--space-xl);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-inner">
+        <a class="brand-link" href="https://www.kbs-services.com/" target="_blank" rel="noopener noreferrer">
+          <div class="brand-mark">K</div>
+          <div class="brand-text">
+            <div class="brand-line1">KBS × Glean</div>
+            <div class="brand-line2">Work AI Platform Recommendation</div>
+          </div>
+        </a>
+        <nav class="nav" aria-label="Page navigation">
+          <a href="#why-now">Why change</a>
+          <a href="#snapshot">KBS at a glance</a>
+          <a href="#economics">Economic case</a>
+          <a href="#usecases">Use cases</a>
+          <a href="#rollout">Rollout plan</a>
+          <a href="#closing" class="nav-cta">Executive summary</a>
+        </nav>
+        <div class="nav-toggle">☰</div>
+      </div>
+    </header>
+
+    <main>
+      <!-- Hero -->
+      <section class="hero" id="top">
+        <div class="shell">
+          <div class="hero-grid">
+            <div>
+              <div class="eyebrow">Why Glean for KBS</div>
+              <h1 class="hero-title">
+                Turn KBS’s tribal knowledge into a
+                <span class="hero-highlight">governed Work&nbsp;AI advantage</span>
+              </h1>
+              <p class="hero-subtitle">
+                So KBS can protect margin, grow revenue, and deliver consistent,
+                high-quality service across 100k+ locations
+              </p>
+              <div class="hero-pill-row">
+                <div class="pill">
+                  <span class="pill-dot"></span>
+                  Free up 100K+ hours yearly so KBS scales locations without proportional headcount.
+                </div>
+                <div class="pill">
+                  Cut revenue leakage and billing/sales cycle times by standardizing, validating critical workflows.
+                </div>
+                <div class="pill">
+                  Improve service quality and consistency while reducing errors that directly impact customer outcomes.
+                </div>
+              </div>
+              <div class="hero-metrics">
+                <div class="metric-card">
+                  <div class="metric-label">Year 1 investment</div>
+                  <div class="metric-value">$578K</div>
+                  <div class="metric-footnote">License, support, implementation</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Conservative case</div>
+                  <div class="metric-value">~276% ROI</div>
+                  <div class="metric-footnote">Payback in ~6.4 months</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-label">Full-scope case</div>
+                  <div class="metric-value">~9.1× ROI</div>
+                  <div class="metric-footnote">
+                    $5.25M net benefit in Year&nbsp;1 at scale
+                  </div>
+                </div>
+              </div>
+              <div class="pilot-box">
+                <div class="pilot-title">Year 1 pilot</div>
+                <div class="pilot-body">
+                  Scoped and available to prove value with a smaller footprint
+                  before committing to the full 1,000‑user rollout.
+                </div>
+              </div>
+            </div>
+
+            <aside class="hero-panel" aria-label="Executive summary">
+              <div class="hero-panel-inner">
+                <div class="hero-panel-title">Executive recommendation</div>
+                <div class="hero-panel-main">
+                  Approve Glean as KBS’s governed
+                  <span>enterprise Work&nbsp;AI platform</span>
+                  for ~1,000 corporate knowledge workers.
+                </div>
+                <div class="hero-panel-body">
+                  Glean connects
+                  <strong>Microsoft 365, Teams, SharePoint, NetSuite, Salesforce,
+                  structured databases, and home‑grown tools like KBS Force</strong>
+                  into a single, permission-aware AI layer for search, assistant,
+                  and agents. The result: less time re‑finding, reconciling, and
+                  re‑explaining &mdash; more time on customer outcomes, revenue,
+                  and margin.
+                </div>
+                <div class="hero-panel-row">
+                  <div class="hero-panel-stat">
+                    <div class="hero-panel-stat-label">Modeled capacity</div>
+                    <div class="hero-panel-stat-value">100K+ hrs / yr</div>
+                    <div class="hero-panel-stat-footnote">
+                      100K+ hrs / yr of reclaimed productivity across Knowledge Workers, enabling leadership to flatten the hiring curve and current staff to do their best work
+                    </div>
+                  </div>
+                  <div class="hero-panel-stat">
+                    <div class="hero-panel-stat-label">Initial scope</div>
+                    <div class="hero-panel-stat-value">~1,000 users</div>
+                    <div class="hero-panel-stat-footnote">
+                      SAMs, CS, Finance, Legal, HR, IT, Engineering
+                    </div>
+                  </div>
+                </div>
+                <div class="hero-panel-tagline">
+                  This is a capacity-creation and quality-improvement platform
+                  decision, not a headcount reduction thesis.
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <!-- KBS at a glance -->
+      <section id="snapshot">
+        <div class="shell">
+          <div class="section-header">
+            <div class="section-kicker">KBS at a glance</div>
+            <h2 class="section-title">
+              A thin-margin, high-scale operator with growing information drag
+            </h2>
+            <p class="section-body">
+              KBS runs mission-critical services across 2B+ square feet and
+              100,000+ customer locations with a lean corporate team. The constraint
+              isn’t demand &mdash; it’s how fast corporate and field leaders can
+              move through pricing, awards, renewals, and support using fragmented
+              data spread across Microsoft 365, NetSuite, Salesforce, structured
+              databases, and KBS Force.
+            </p>
+          </div>
+
+          <div class="grid-3">
+            <article class="card">
+              <div class="card-label">Business model</div>
+              <div class="card-title">High-scale, low-margin services</div>
+              <div class="card-body">
+                Growth has historically meant adding more managers, analysts, and
+                support staff to keep up with QBRs, RFPs, awards, and escalations.
+                That model doesn’t scale in a world of wage pressure and rising
+                client expectations.
+              </div>
+              <div class="dot-row">
+                <span>Trusted partner to Fortune 100 brands</span>
+                <span>2B+ sq ft serviced daily</span>
+              </div>
+            </article>
+
+            <article class="card">
+              <div class="card-label">Systems today</div>
+              <div class="card-title">Fragmented knowledge surface</div>
+              <div class="card-body">
+                Operational truth sits across Microsoft 365, Teams, SharePoint,
+                NetSuite, Salesforce, structured data stores, and KBS Force.
+                Everyone spends time asking, “Where did we do this before?” instead
+                of executing.
+              </div>
+              <div class="dot-row">
+                <span>Heavy Excel / SharePoint reliance</span>
+                <span>Tribal knowledge &amp; oversharing risk</span>
+              </div>
+            </article>
+
+            <article class="card">
+              <div class="card-label">AI moment</div>
+              <div class="card-title">From experiments to platform</div>
+              <div class="card-body">
+                Teams are already testing Copilot, ChatGPT, and internal LLM
+                efforts. The risk is AI sprawl: disconnected bots, duplicated
+                integrations, and unclear governance &mdash; without a single,
+                secure “front door” for Work&nbsp;AI.
+              </div>
+              <div class="dot-row">
+                <span>Demand for 5–10× ROI on any AI spend</span>
+                <span>Need one governed AI layer</span>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Why now / platform fit -->
+      <section id="why-now">
+        <div class="shell">
+          <div class="section-header">
+            <div class="section-kicker">The case for acting now</div>
+            <h2 class="section-title">
+              KBS doesn’t need “another tool” — it needs a governed Work&nbsp;AI layer
+            </h2>
+            <p class="section-body">
+              Status quo, embedded AI in individual apps, or bespoke builds on raw
+              LLMs all share the same flaw: they don’t solve the cross-system,
+              cross-role knowledge problem. KBS needs one context layer that
+              understands its people, customers, contracts, sites, and systems —
+              and that can power search, assistant, and agents with the same
+              governed foundation.
+            </p>
+          </div>
+
+          <div class="grid-3">
+            <article class="card">
+              <div class="card-label">Why change?</div>
+              <div class="card-title">High-friction work in high-leverage roles</div>
+              <div class="card-body">
+                <strong>Strategic Account Managers, Finance, Legal, HR, IT, and
+                Corporate Development</strong> spend disproportionate time:
+              </div>
+              <ul class="usecase-list" style="margin-top: 12px;">
+                <li>
+                  <span class="usecase-label">Rebuilding margin models</span> for
+                  every rebid, renewal, and award template from scratch.
+                </li>
+                <li>
+                  <span class="usecase-label">Manually stitching together</span>
+                  customer, pricing, and operations data from Microsoft 365,
+                  NetSuite, Salesforce, and KBS Force.
+                </li>
+                <li>
+                  <span class="usecase-label">Re‑explaining the same decisions</span>
+                  to new leaders and deal teams instead of executing the next
+                  opportunity.
+                </li>
+              </ul>
+            </article>
+
+            <article class="card">
+              <div class="card-label">Why Glean?</div>
+              <div class="card-title">Margin, revenue, and quality outcomes</div>
+              <div class="card-body">
+                Glean is the Work&nbsp;AI platform that connects KBS’s tech stack to
+                its business outcomes:
+              </div>
+              <ul class="usecase-list" style="margin-top: 12px;">
+                <li>
+                  <span class="usecase-label">Protect margin</span> by reducing
+                  time spent on low‑value searching and rework, and by giving
+                  Pricing and Finance fast access to prior deals, economics, and
+                  risks.
+                </li>
+                <li>
+                  <span class="usecase-label">Grow revenue</span> by helping SAMs
+                  and Sales quickly assemble QBRs, renewals, and award packages
+                  that surface the full KBS story and capacity for more business.
+                </li>
+                <li>
+                  <span class="usecase-label">Ensure quality service</span> by
+                  giving Operations, IT, and HR instant access to playbooks,
+                  standards, and incident history that keep performance consistent
+                  across every site.
+                </li>
+              </ul>
+            </article>
+
+            <article class="card">
+              <div class="card-label">Why now?</div>
+              <div class="card-title">Window to set the Work&nbsp;AI standard</div>
+              <div class="card-body">
+                Approving Glean now lets KBS:
+              </div>
+              <ul class="usecase-list" style="margin-top: 12px;">
+                <li>
+                  Standardize on a <strong>governed AI platform</strong> before
+                  tools and shadow IT proliferate.
+                </li>
+                <li>
+                  Launch a <strong>scoped Year&nbsp;1 pilot</strong> to prove ROI
+                  on a subset of roles and workflows before expanding.
+                </li>
+                <li>
+                  Build <strong>AI fluency and trust</strong> with the same
+                  discipline KBS applies to safety, compliance, and operations.
+                </li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- Economic case -->
+      <section id="economics">
+        <div class="shell">
+          <div class="section-header">
+            <div class="section-kicker">Economic case</div>
+            <h2 class="section-title">
+              Year&nbsp;1: $578K in investment, $1.6M–$5.2M net benefit, plus a pilot
+              path to prove value
+            </h2>
+            <p class="section-body">
+              The KBS–Glean model has been built bottom‑up from specific workflows
+              and conservative assumptions: adoption ramps by quarter, only 50% of
+              saved time is recaptured as productive capacity, and agentic “stretch”
+              use cases are treated as upside.
+            </p>
+          </div>
+
+          <div class="economics-layout">
+            <div>
+              <div class="badge-soft">
+                <span class="badge-dot"></span>
+                Two views of Year&nbsp;1 value
+              </div>
+
+              <div class="stat-grid">
+                <div class="stat-chip">
+                  <div class="stat-chip-label">Conservative (search + assistant)</div>
+                  <div class="stat-chip-value">$1.60M net in Year&nbsp;1</div>
+                  <div class="stat-chip-footnote">
+                    $2.18M gross benefit on $578K investment
+                  </div>
+                </div>
+                <div class="stat-chip">
+                  <div class="stat-chip-label">Full-scope (agents included)</div>
+                  <div class="stat-chip-value">$5.25M net in Year&nbsp;1</div>
+                  <div class="stat-chip-footnote">
+                    $5.83M gross benefit on $578K investment
+                  </div>
+                </div>
+                <div class="stat-chip">
+                  <div class="stat-chip-label">Payback</div>
+                  <div class="stat-chip-value">~6.4 → ~4.3 months</div>
+                  <div class="stat-chip-footnote">
+                    Faster as award, SAM, and support agents ramp
+                  </div>
+                </div>
+                <div class="stat-chip">
+                  <div class="stat-chip-label">Run-rate value at scale</div>
+                  <div class="stat-chip-value">$10M+ / yr</div>
+                  <div class="stat-chip-footnote">
+                    Across search, assistant, customer, engineering, and support
+                  </div>
+                </div>
+              </div>
+
+              <div class="pilot-option-card">
+                <div class="pilot-option-title">Year&nbsp;1 pilot option</div>
+                <div>
+                  KBS can choose a <strong>scoped Year&nbsp;1 pilot</strong> focused
+                  on a smaller set of users and workflows (for example, SAMs and
+                  support) to validate the ROI model, governance fit, and user
+                  adoption before expanding to the full 1,000‑user footprint.
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="bar-card">
+                <div class="bar-row">
+                  <span>Conservative model &mdash; 276% ROI</span>
+                  <span>Q4 cumulative net: $1.60M</span>
+                </div>
+                <div class="bar">
+                  <div class="bar-fill bar-fill--conservative"></div>
+                </div>
+                <p class="section-body" style="font-size: 12px; margin-bottom: var(--space-md);">
+                  Search and assistant productivity only. Agents and ticket
+                  deflection excluded. Designed for board‑ready scrutiny.
+                </p>
+
+                <div class="bar-row" style="margin-top: var(--space-md);">
+                  <span>Full-scope model &mdash; ~9.1× ROI</span>
+                  <span>Q4 cumulative net: $5.25M</span>
+                </div>
+                <div class="bar">
+                  <div class="bar-fill bar-fill--full"></div>
+                </div>
+                <p class="section-body" style="font-size: 12px;">
+                  Includes modeled value from customer-team agents, engineering /
+                  KBS Force workflows, and support deflection — still using
+                  conservative recapture and risk adjustments.
+                </p>
+              </div>
+
+              <div style="margin-top: var(--space-lg); font-size: 12px; color: var(--text-soft);">
+                The measurement plan is straightforward: baseline today’s workflows;
+                launch Glean; re‑measure cycle time, output quality, and ticket
+                patterns by role and process; then reconcile against the model and
+                the pilot scope.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Use cases -->
+      <section id="usecases">
+        <div class="shell">
+          <div class="section-header">
+            <div class="section-kicker">Where the hours come from</div>
+            <h2 class="section-title">
+              Targeted workflows across customer teams, engineering, and support
+            </h2>
+            <p class="section-body">
+              Glean’s value at KBS is concentrated in a small number of high-friction,
+              repeatable workflows. These are not “nice to have” use cases — they sit
+              at the heart of revenue, margin, and customer experience.
+            </p>
+          </div>
+
+          <div class="usecase-columns">
+            <div>
+              <div class="list-heading">Cross‑company foundation</div>
+              <ul class="usecase-list">
+                <li>
+                  <span class="usecase-label">Unified enterprise search</span> –
+                  One permission-aware search across Microsoft 365, Teams,
+                  SharePoint, NetSuite, Salesforce, structured databases, and KBS
+                  Force, so employees spend less time hunting and more time
+                  executing.
+                </li>
+                <li>
+                  <span class="usecase-label">Work assistant for every knowledge worker</span> –
+                  Drafts QBR slides, summarizes threads, explains contracts,
+                  generates recaps, and answers “have we done this before?” from
+                  KBS’s own history.
+                </li>
+                <li>
+                  <span class="usecase-label">Onboarding accelerators</span> –
+                  New managers and analysts ramp faster by querying past deals,
+                  playbooks, and policies instead of rediscovering them.
+                </li>
+              </ul>
+
+              <div style="height: 24px;"></div>
+
+              <div class="list-heading">Customer &amp; commercial workflows</div>
+              <ul class="usecase-list">
+                <li>
+                  <span class="usecase-label">Award template &amp; pricing agents</span> –
+                  Turn multi-hour spreadsheet gymnastics into a guided,
+                  minutes‑long flow that pulls the right inputs from NetSuite,
+                  Salesforce, KBS Force, and prior awards.
+                </li>
+                <li>
+                  <span class="usecase-label">QBR / renewal prep agent</span> –
+                  Automatically compiles performance, incidents, scope changes,
+                  pricing history, and prior commitments into a review-ready
+                  outline for SAMs.
+                </li>
+                <li>
+                  <span class="usecase-label">KYC / customer 360</span> –
+                  One question yields the latest contracts, SLAs, scope of work,
+                  change orders, pricing terms, and open risk items for any major
+                  account.
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <div class="list-heading">Engineering &amp; KBS Force</div>
+              <ul class="usecase-list">
+                <li>
+                  <span class="usecase-label">Project onboarding &amp; context</span> –
+                  Engineers ask natural-language questions about a system or
+                  integration and get history across tickets, runbooks, and
+                  documentation.
+                </li>
+                <li>
+                  <span class="usecase-label">On‑call &amp; incident triage</span> –
+                  For any incident, Glean surfaces similar past issues, fixes,
+                  and post‑mortems across ticketing, logs, and internal docs.
+                </li>
+                <li>
+                  <span class="usecase-label">PR review copilot</span> –
+                  Summarizes changes, highlights risky areas, and links to prior
+                  related work to speed reviews and reduce regressions.
+                </li>
+              </ul>
+
+              <div style="height: 24px;"></div>
+
+              <div class="list-heading">IT / HR / support</div>
+              <ul class="usecase-list">
+                <li>
+                  <span class="usecase-label">Ticket deflection &amp; faster MTTR</span> –
+                  An assistant that can answer common IT/HR questions and help
+                  triage complex ones using policy docs, SOPs, and prior tickets,
+                  driving fewer tickets and lower mean time to resolution.
+                </li>
+                <li>
+                  <span class="usecase-label">Policy &amp; benefits assistant</span> –
+                  Employees self‑serve answers on leave, travel, pay, and
+                  benefits, reducing repetitive HR inquiries.
+                </li>
+                <li>
+                  <span class="usecase-label">Onboarding &amp; M&amp;A playbooks</span> –
+                  Agents that assemble onboarding plans and diligence packs from
+                  prior deals and playbooks, lowering the labor cost of each
+                  transaction.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Rollout / path to value -->
+      <section id="rollout">
+        <div class="shell">
+          <div class="section-header">
+            <div class="section-kicker">Path to value</div>
+            <h2 class="section-title">
+              Start with search &amp; assistant, then layer in agents, pilot, and expansion
+            </h2>
+            <p class="section-body">
+              The deployment plan is intentionally gated. Phase&nbsp;2 and Phase&nbsp;3
+              only unlock once Phase&nbsp;1 (and any scoped pilot) has demonstrated
+              adoption, time savings, and clear executive confidence in the model.
+            </p>
+          </div>
+
+          <div class="timeline">
+            <div class="timeline-step" data-step="1">
+              <h3 class="timeline-title">
+                Phase&nbsp;1 &mdash; Unified search &amp; assistant
+                <span class="timeline-tag">~30–60 days</span>
+              </h3>
+              <p class="timeline-body">
+                Connect core systems
+                (<strong>Microsoft 365, Teams, SharePoint, NetSuite, Salesforce,
+                structured databases, and KBS Force</strong>). Roll out to ~1,000
+                targeted users (or a smaller pilot cohort) with clear comms,
+                training, and baselines. Measure search and assistant adoption, time
+                savings, and sentiment across key roles.
+              </p>
+            </div>
+
+            <div class="timeline-step" data-step="2">
+              <h3 class="timeline-title">
+                Phase&nbsp;2 &mdash; High‑value agents
+                <span class="timeline-tag">Months&nbsp;3–6</span>
+              </h3>
+              <p class="timeline-body">
+                Codify the highest‑impact workflows into agents: award templates,
+                QBR prep, KYC / customer 360, engineering onboarding and triage,
+                and ticket deflection. Validate modeled savings against real
+                behavior and refine the ROI model with KBS Finance based on pilot
+                results.
+              </p>
+            </div>
+
+            <div class="timeline-step" data-step="3">
+              <h3 class="timeline-title">
+                Phase&nbsp;3 &mdash; Expand &amp; embed
+                <span class="timeline-tag">Months&nbsp;6–12</span>
+              </h3>
+              <p class="timeline-body">
+                Expand seat coverage and agent exposure to additional locations and
+                functions, and embed Glean into where KBS already works
+                (Teams, ticketing, CRM, and internal portals). Use the proven ROI,
+                capacity gains, and service-quality improvements to inform staffing,
+                budgeting, and future AI investments.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Closing CTA -->
+      <section id="closing" class="closing">
+        <div class="shell">
+          <div class="section-header">
+            <div class="section-kicker">Recommendation</div>
+            <h2 class="section-title">
+              Approve Glean as the Work&nbsp;AI platform for KBS and proceed with a
+              scoped Year&nbsp;1 pilot leading to a 1,000‑user deployment
+            </h2>
+            <p class="section-body" style="max-width: 720px; margin-inline: auto;">
+              The ROI model, deployment plan, and use case portfolio show a clear,
+              operationally credible path to value tied directly to
+              <strong>margin, revenue growth, and quality service</strong>.
+              Glean gives KBS a governed, cross‑system AI foundation at the exact
+              moment when margin pressure, customer expectations, and AI
+              experimentation converge.
+            </p>
+          </div>
+
+          <div class="cta-buttons">
+            <button class="btn btn-primary" type="button">
+              Approve platform &amp; pilot
+              <span class="icon">→</span>
+            </button>
+            <button class="btn btn-secondary" type="button">
+              Review deployment &amp; ROI details
+              <span class="icon">↗</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
